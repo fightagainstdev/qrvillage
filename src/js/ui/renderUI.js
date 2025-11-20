@@ -1,0 +1,193 @@
+function gameRenderPost() {
+	
+	GLOBAL.vfxMan.render();
+	
+	if (GLOBAL.state == DEFS.STATES.GAME_LOST) {
+
+		drawText(
+			'你输了\n点击重试？',
+			screenToWorld(vec2(innerWidth / 2, innerHeight / 2)),
+			.08,
+			true
+		);
+
+		return;
+	}
+	else if (GLOBAL.state == DEFS.STATES.GAME_WON) {
+
+		cameraScale += GLOBAL.dScale;
+		if (cameraScale > GLOBAL.maxCameraScale || cameraScale < GLOBAL.minCameraScale) {
+			GLOBAL.dScale = -GLOBAL.dScale;
+		}
+
+		drawText(
+			'你击败了\n英雄们！',
+			screenToWorld(vec2(innerWidth / 2, innerHeight / 2)),
+			.08,
+			true
+		);
+
+		return;
+	}
+
+	if (GLOBAL.state > 5) {
+		// building mode
+
+		// draw temp structure
+
+		const
+			x = Math.round(mousePos.x),
+			y = Math.round(mousePos.y);
+
+		let color = new Color(1, 1, 1, .5),
+			size = vec2(1),
+			tileInfo = tile(50);
+		
+		if (GLOBAL.mapMan.getTileAt(mousePos)) {
+			// illegal position 
+			color = new Color(1, 0, 0, .5);
+		}
+
+
+		if (GLOBAL.state == DEFS.STATES.BUILD_BARRACKS) {
+			size = vec2(2);
+			tileInfo = tile(vec2(0, 96), vec2(24));
+		}
+		else if (GLOBAL.state == DEFS.STATES.BUILD_WALL) {
+			tileInfo = tile(51);
+		}
+		else if (GLOBAL.state == DEFS.STATES.BUILD_FARM) {
+			size = vec2(2);
+			tileInfo = tile(vec2(24, 96), vec2(24));
+		}
+		// placing the building
+		drawTile(
+			vec2(x, y),
+			size,
+			tileInfo,
+			color
+		);
+
+	}
+
+	const dx = min(128, Math.round(128 * innerWidth / 800));
+
+	// wood
+	let uiPos = screenToWorld(vec2(dx, 64));
+
+	drawUiBox(uiPos, tile(36), GLOBAL.wood);
+
+	const manaPos = screenToWorld(vec2(innerWidth - dx, 64));;
+	// mana
+	drawUiBox(manaPos, tile(45), GLOBAL.mana);
+
+	// stone
+	uiPos = uiPos.subtract(vec2(0, 2));
+
+	drawUiBox(uiPos, tile(44), GLOBAL.stone);
+	
+
+	// food
+	uiPos = uiPos.subtract(vec2(0, 2));
+
+	drawUiBox(uiPos, tile(37), GLOBAL.food);
+
+
+
+	// population
+	uiPos = uiPos.subtract(vec2(0, 2));
+
+	drawUiBox(uiPos, tile(4), GLOBAL.units.length + '/' + GLOBAL.getSupportedPop());
+
+
+	//  ui menus
+	if (GLOBAL.state == DEFS.STATES.BUILD_MENU) {
+		for (let i = 0; i < GLOBAL.buildMenu.length; i++) {
+			GLOBAL.buildMenu[i].draw();
+		}
+	}
+	if (GLOBAL.state == DEFS.STATES.TRAIN_MENU) {
+		for (let i = 0; i < GLOBAL.trainMenu.length; i++) {
+			GLOBAL.trainMenu[i].draw();
+		}
+	}
+	else if (GLOBAL.state == DEFS.STATES.TOWNHALL_MENU) {
+		for (let i = 0; i < GLOBAL.townHallMenu.length; i++) {
+			GLOBAL.townHallMenu[i].draw();
+		}
+	}
+
+	for (let i = 0; i < GLOBAL.spellMenu.length; i++) {
+		GLOBAL.spellMenu[i].draw();
+	}
+
+	// minimap
+	GLOBAL.miniMap.draw(dx);
+
+	// messages
+	if (GLOBAL.message) {
+		if (GLOBAL.messageTimer.elapsed()) {
+			GLOBAL.message = '';
+		}
+
+		// display message
+		drawText(
+			GLOBAL.message,
+			cameraPos.subtract(vec2(0, 5)),
+			.08,
+			true
+		);
+
+	}
+
+	// invasion timer
+	const countdown = Math.ceil(-GLOBAL.warriorTimer.valueOf());
+	let warriorText;
+
+	if (GLOBAL.warriorIndex < 12 && countdown < 31) {
+		const def = DEFS.WARRIORS[GLOBAL.warriorIndex];
+		warriorText = def.number + ' ' + countdown + '\n' + def.from;
+	}
+	else if (GLOBAL.enemies.length) {
+		warriorText = DEFS.WARRIORS[GLOBAL.warriorIndex - 1].name + '  \n' + GLOBAL.warriorIndex + '/13';
+	}
+	warriorText && drawText(
+		warriorText,
+		screenToWorld(vec2(innerWidth / 2, 24)),
+		.08,
+		true
+	);
+
+
+	// title
+	if (!screenClicked)
+		drawText(
+			'温多尔\n村庄',
+			screenToWorld(vec2(innerWidth / 2, 1 * innerHeight / 3)),
+			min(.16, .16 * innerWidth / 700),
+			true
+		);
+}
+
+function drawUiBox(uiPos, tileInfo, text) {
+	
+	drawTile(
+		uiPos,
+		vec2(4, 2),
+		tile(vec2(0, 48), vec2(48, 24))
+	);
+	drawTile(
+		uiPos.subtract(vec2(.85, 0)),
+		vec2(1),
+		tileInfo
+	);
+
+	drawText(
+		text,
+		uiPos.add(vec2(.5, .2)),
+		.08,
+		true
+	);
+
+
+}
