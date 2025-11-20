@@ -71,7 +71,7 @@ module.exports = function (grunt) {
 			options: {
 				compilerFile: "node_modules/google-closure-compiler-java/compiler.jar",
 				compilerOpts: {
-					compilation_level: "ADVANCED_OPTIMIZATIONS",
+					compilation_level: "SIMPLE_OPTIMIZATIONS",
 					language_out: "ECMASCRIPT_2019",
 					jscomp_off: "checkVars",
 					//jscomp_off: ["checkVars", 'checkTypes'],
